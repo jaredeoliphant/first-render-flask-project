@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 from scipy.signal import correlate,find_peaks
-
+from matplotlib.figure import Figure
+from io import BytesIO
+import base64
 
 
 
@@ -81,12 +83,55 @@ def data_process(filename):
     
     xlim_param = resampled_time[peaks[0]] - 0.03275 + .03+.0017
     
+    ## plot raw speed sensor data for user to confirm nothing is fishy
+    fig = Figure()
+    ax1 = fig.add_subplot(211)
+    
+    ax1.plot(time_arr,speed_arr,'^:',label='original')
+    ax1.plot(time_arr-offset,speed_arr,'>:',label='shifted')
+    
+    #xlim_param = resampled_time[peaks[0]] - 0.03275 + .03+.0017
+    #print(xlim_param)
+    ax1.set_xlim(xlim_param,xlim_param+.01)
+    
+    ax1.legend()
+    ax1.grid()
+    ax1.set_title(f'speed = {round(speed_leading,2)} kmh')
+    ax1.set_xlabel('Time (s)')
+    ax1.set_ylabel('Speed Sensor')
+    
+    
+    ax2 = fig.add_subplot(212)
+    
+    ax2.plot(data['Time'],data.iloc[:,5],label='Roll')
+    ax2.plot(data['Time'],data.iloc[:,6],label='Pitch')
+    ax2.plot(data['Time'],data.iloc[:,7],label='Yaw')
+    
+    ylimits = ax2.get_ylim()
+    #ax2.plot([float(self.Starttext.get())]*2,ylimits,'k:')
+    #ax2.plot([float(self.Finaltext.get())]*2,ylimits,'k:')
+    
+    
+    ax2.set_xlabel('Time (s)')
+    ax2.set_ylabel('Angular rates')
+    
+    ax2.legend()
+    ax2.set_ylim(ylimits)
+    ax2.grid()
+    
+    
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    # Embed the result in the html output.
+    imgdata = base64.b64encode(buf.getbuffer()).decode("ascii")
+    
     
     return {'speed_kmh':speed_leading,
             'xlim_param':xlim_param,
             'offset':offset,
             'testID':testID,
-            'sampleRate':sampleRate
+            'sampleRate':sampleRate,
+            'imgdata':imgdata
             }
 
 def resample_signal(t_arr,x_arr,factor=2):

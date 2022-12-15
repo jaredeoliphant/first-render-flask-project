@@ -3,3 +3,4 @@ Gunicorn
 numpy
 pandas
 scipy
+matplotlib
