@@ -1,6 +1,7 @@
 from flask import Flask, render_template,request
 from werkzeug.utils import secure_filename
 from data_process import data_process
+import os
 app = Flask(__name__)
 
 @app.route('/')
@@ -13,8 +14,9 @@ def upload_file():
    if request.method == 'POST':
       f = request.files['file']
       secfilename = secure_filename(f.filename)
-      f.save(secure_filename(secfilename))
+      f.save(secfilename)
       processed_values = data_process(secfilename)
+      os.remove(secfilename)
       return f'Test ID: {processed_values["testID"]}      speed:  {processed_values["speed_kmh"]} km/h'
   
     
