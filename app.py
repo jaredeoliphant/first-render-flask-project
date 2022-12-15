@@ -12,13 +12,14 @@ def homepage():
 def upload_file():
    if request.method == 'POST':
       f = request.files['file']
-      f.save(secure_filename(f.filename))
-      processed_values = data_process(f.filename)
+      #f.save(secure_filename(f.filename))
+      secfilename = secure_filename(f.filename)
+      processed_values = data_process(secfilename)
       return f'Test ID: {processed_values["testID"]}      speed:  {processed_values["speed_kmh"]} km/h'
   
     
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
     
