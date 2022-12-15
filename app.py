@@ -27,8 +27,10 @@ def upload_file():
       except:
           os.remove(secfilename)
           return 'failed'
-
+   
       
+   else:
+       return 'no file'
 
 @app.route("/plot")
 def hello():
@@ -52,5 +54,5 @@ def ip_notebook():
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
     
