@@ -19,18 +19,18 @@ def upload_file():
       f = request.files['file']
       secfilename = secure_filename(f.filename)
       f.save(secfilename)
-      try:
-          processed_values = data_process(secfilename)
-          os.remove(secfilename)
-          return render_template('speed_result.html',
-                                 testID=processed_values['testID'],
-                                 speed_kmh=processed_values['speed_kmh'],
-                                 imgdata=processed_values['imgdata'],
-                                 outputfilename=processed_values['outputfilename']
-                                 )
-      except:
-          os.remove(secfilename)
-          return 'failed'   
+      #try:
+      processed_values = data_process(secfilename)
+      os.remove(secfilename)
+      return render_template('speed_result.html',
+                               testID=processed_values['testID'],
+                               speed_kmh=processed_values['speed_kmh'],
+                               imgdata=processed_values['imgdata'],
+                               outputfilename=processed_values['outputfilename']
+                               )
+      #except:
+       #   os.remove(secfilename)
+        #  return 'failed'   
    else:
        return 'no file'
    
@@ -40,6 +40,7 @@ def getCSV(outputfilename):
     with open(f'{outputfilename}.csv') as fp:
         csv = fp.read()
     #csv = '1,2,3\n4,5,6\n'
+    
     return Response(
         csv,
         mimetype="text/csv",
