@@ -13,20 +13,27 @@ def homepage():
     return render_template('index.html')
 
 
-@app.route('/speed_result', methods = ['GET', 'POST'])
+@app.route("/speed_result", methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':
       f = request.files['file']
+      start = request.form['starttime']
+      end = request.form['endtime']
       secfilename = secure_filename(f.filename)
       f.save(secfilename)
-      #try:
-      processed_values = data_process(secfilename)
+      processed_values = data_process(secfilename,start,end)
       os.remove(secfilename)
       return render_template('speed_result.html',
                                testID=processed_values['testID'],
                                speed_kmh=processed_values['speed_kmh'],
                                imgdata=processed_values['imgdata'],
-                               outputfilename=processed_values['outputfilename']
+                               outputfilename=processed_values['outputfilename'],
+                               speed_falling=processed_values['speed_falling'],
+                               rollbias=processed_values['rollbias'],
+                               pitchbias=processed_values['pitchbias'],
+                               yawbias=processed_values['yawbias'],
+                               starttime=start,
+                               endtime=end
                                )
       #except:
        #   os.remove(secfilename)
@@ -76,5 +83,5 @@ def example():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
     

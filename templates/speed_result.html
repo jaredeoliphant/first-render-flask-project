@@ -14,12 +14,19 @@
   </div>
   </center>
     <h1>Results:</h1>
-    <center>Test ID: {{ testID }}   
-    speed:  {{ speed_kmh }} km/h 
+    <center>Test ID: {{ testID }} 
+    <br>   
+    speed (leading edge):  {{ speed_kmh }} km/h 
+    <br> 
+    speed (falling edge):  {{ speed_falling }} km/h
+    <br> 
+    roll, pitch, yaw samping bias':  {{ rollbias }}, {{ pitchbias }}, {{ yawbias }} 
+    <br> 
+    taken from the interval:  ({{ starttime }}, {{ endtime }}) 
     <br> 
     <img src="data:image/png;base64,{{ imgdata }}"/>
     <br>
-    <a href="/getCSV/{{ outputfilename }}">Download </a> .csv file with sampling bias removed
+    <a href="/getCSV/{{ outputfilename }}">Download</a> .csv file with sampling bias removed
     </center>
     <p></p>
     <p></p>

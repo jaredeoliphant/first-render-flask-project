@@ -7,14 +7,21 @@ import base64
 
 
 
-def data_process(filename):
+def data_process(filename,starttime,endtime):
+    
+    try:
+        starttime = float(starttime)
+        endtime = float(endtime)
+    except:
+        starttime = 7
+        endtime = 9.8
     
     ## output file with suffix added as well as a log file for storing speed calculation
     outputfilename = filename.split('.csv')[0] + '_OFFSET'
     # logfilename = filename.split('.csv')[0] + '_log.txt'
     
     ## read the csv file in first to just get the testID,sampleRate,and channel information
-    headerdata = pd.read_csv(filename)
+    headerdata = pd.read_csv(filename,nrows=50)
     # headerdata = pd.read_csv('298-064_FILTERED.csv')
     
     ## clean up
@@ -29,9 +36,12 @@ def data_process(filename):
     ## read in the csv file again with only the meat of the data after the header section
     data = pd.read_csv(filename,skiprows=22) 
     
+    
     ## clean up
     data.drop('Unnamed: 8',inplace=True,axis=1) 
     
+    #print(data.info())
+    #print(data.dtypes)
     
     ## sort the columns as needed to get them into the following order:
     ## X accel, Y accel, Z accel, Roll, Pitch, Yaw
@@ -76,6 +86,7 @@ def data_process(filename):
     
     peaks, therest = find_peaks(-abs(resampled_arr+100),prominence=35)
     speed_leading = factor*30008*3600/1000/(peaks[2]-peaks[0])
+    speed_falling = factor*30008*3600/1000/(peaks[3]-peaks[1])
     offset = 3.6/speed_leading
     
 
@@ -84,8 +95,8 @@ def data_process(filename):
     xlim_param = resampled_time[peaks[0]] - 0.03275 + .03+.0017
     
     ## plot raw speed sensor data for user to confirm nothing is fishy
-    fig = Figure(figsize=(6,8))
-    ax1 = fig.add_subplot(211)
+    fig = Figure(figsize=(16,6))
+    ax1 = fig.add_subplot(121)
     
     ax1.plot(time_arr,speed_arr,'^:',label='original')
     ax1.plot(time_arr-offset,speed_arr,'>:',label='shifted')
@@ -101,15 +112,15 @@ def data_process(filename):
     ax1.set_ylabel('Speed Sensor')
     
     
-    ax2 = fig.add_subplot(212)
+    ax2 = fig.add_subplot(122)
     
     ax2.plot(data['Time'],data.iloc[:,5],label='Roll')
     ax2.plot(data['Time'],data.iloc[:,6],label='Pitch')
     ax2.plot(data['Time'],data.iloc[:,7],label='Yaw')
     
     ylimits = ax2.get_ylim()
-    #ax2.plot([float(self.Starttext.get())]*2,ylimits,'k:')
-    #ax2.plot([float(self.Finaltext.get())]*2,ylimits,'k:')
+    ax2.plot([starttime]*2,ylimits,'k:')
+    ax2.plot([endtime]*2,ylimits,'k:')
     
     
     ax2.set_xlabel('Time (s)')
@@ -126,8 +137,8 @@ def data_process(filename):
     imgdata = base64.b64encode(buf.getbuffer()).decode("ascii")
     
     # get from html eventually
-    starttime=7
-    endtime=10
+    #starttime=7
+    #endtime=10
     
     datasubset = data[(data['Time'] >= starttime) & (data['Time'] <= endtime)]
     
@@ -150,12 +161,16 @@ def data_process(filename):
     
     
     return {'speed_kmh':speed_leading,
+            'speed_falling':speed_falling,
             #'xlim_param':xlim_param,
             #'offset':offset,
             'testID':testID,
             #'sampleRate':sampleRate,
             'imgdata':imgdata,
-            'outputfilename':outputfilename
+            'outputfilename':outputfilename,
+            'rollbias':rollbias,
+            'pitchbias':pitchbias,
+            'yawbias':yawbias
             }
 
 def resample_signal(t_arr,x_arr,factor=2):
