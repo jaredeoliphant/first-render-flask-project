@@ -10,7 +10,7 @@ import base64
 def data_process(filename):
     
     ## output file with suffix added as well as a log file for storing speed calculation
-    # outputfilename = filename.split('.csv')[0] + '_OFFSET'
+    outputfilename = filename.split('.csv')[0] + '_OFFSET'
     # logfilename = filename.split('.csv')[0] + '_log.txt'
     
     ## read the csv file in first to just get the testID,sampleRate,and channel information
@@ -84,7 +84,7 @@ def data_process(filename):
     xlim_param = resampled_time[peaks[0]] - 0.03275 + .03+.0017
     
     ## plot raw speed sensor data for user to confirm nothing is fishy
-    fig = Figure()
+    fig = Figure(figsize=(6,8))
     ax1 = fig.add_subplot(211)
     
     ax1.plot(time_arr,speed_arr,'^:',label='original')
@@ -125,13 +125,37 @@ def data_process(filename):
     # Embed the result in the html output.
     imgdata = base64.b64encode(buf.getbuffer()).decode("ascii")
     
+    # get from html eventually
+    starttime=7
+    endtime=10
+    
+    datasubset = data[(data['Time'] >= starttime) & (data['Time'] <= endtime)]
+    
+    ## take a mean (average) of the three vectors
+    rollbias = datasubset.iloc[:,5].mean()
+    pitchbias = datasubset.iloc[:,6].mean()
+    yawbias = datasubset.iloc[:,7].mean()
+    
+    ## copy of the data is required so that it can be modified
+    offsetdata = data.copy()
+    
+    ## subract sampling bias from data
+    offsetdata.iloc[:,5] = offsetdata.iloc[:,5] - rollbias
+    offsetdata.iloc[:,6] = offsetdata.iloc[:,6] - pitchbias
+    offsetdata.iloc[:,7] = offsetdata.iloc[:,7] - yawbias
+    
+    # data.to_csv("output.csv")
+    header.to_csv(outputfilename+'.csv',index=False,header=['Headers','','','','','','',''])
+    offsetdata.to_csv(outputfilename+'.csv',index=False,mode='a')
+    
     
     return {'speed_kmh':speed_leading,
-            'xlim_param':xlim_param,
-            'offset':offset,
+            #'xlim_param':xlim_param,
+            #'offset':offset,
             'testID':testID,
-            'sampleRate':sampleRate,
-            'imgdata':imgdata
+            #'sampleRate':sampleRate,
+            'imgdata':imgdata,
+            'outputfilename':outputfilename
             }
 
 def resample_signal(t_arr,x_arr,factor=2):

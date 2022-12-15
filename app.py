@@ -1,4 +1,4 @@
-from flask import Flask, render_template,request
+from flask import Flask, render_template,request,Response
 from werkzeug.utils import secure_filename
 from data_process import data_process
 import os
@@ -22,15 +22,31 @@ def upload_file():
       try:
           processed_values = data_process(secfilename)
           os.remove(secfilename)
-          return f'Test ID: {processed_values["testID"]}      speed:  {processed_values["speed_kmh"]} km/h <br> <img src="data:image/png;base64,{processed_values["imgdata"]}"/>'
-
+          return render_template('speed_result.html',
+                                 testID=processed_values['testID'],
+                                 speed_kmh=processed_values['speed_kmh'],
+                                 imgdata=processed_values['imgdata'],
+                                 outputfilename=processed_values['outputfilename']
+                                 )
       except:
           os.remove(secfilename)
-          return 'failed'
-   
-      
+          return 'failed'   
    else:
        return 'no file'
+   
+    
+@app.route("/getCSV/<outputfilename>")
+def getCSV(outputfilename):
+    with open(f'{outputfilename}.csv') as fp:
+        csv = fp.read()
+    #csv = '1,2,3\n4,5,6\n'
+    return Response(
+        csv,
+        mimetype="text/csv",
+        headers={"Content-disposition":
+                  f"attachment; filename={outputfilename}.csv"})
+
+
 
 @app.route("/plot")
 def hello():
@@ -51,6 +67,11 @@ def hello():
 @app.route('/for_fun')
 def ip_notebook():
     return render_template('notebook.html')
+
+
+@app.route('/example')
+def example():
+    return render_template('result_example.html')
 
 
 if __name__ == '__main__':
