@@ -82,6 +82,12 @@ def example():
     return render_template('result_example.html')
 
 
+@app.route('/algorithm')
+def algorithm():
+    return render_template('testing.html')
+
+
+
 if __name__ == '__main__':
     app.run(debug=False)
     
