@@ -4,14 +4,15 @@ from wtforms import StringField, SubmitField, FloatField, FileField
 from wtforms.validators import Length, DataRequired, NumberRange
 from werkzeug.utils import secure_filename
 from data_process import data_process
-import os, time
+import os
 
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'secretkey'
-app.config['UPLOAD_FOLDER'] = 'static\\files'
-
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'files')
+if not os.path.exists(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])):
+    os.makedirs(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER']))
 
 class DataForm(FlaskForm):
 
