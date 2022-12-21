@@ -4,6 +4,7 @@ from wtforms import StringField, SubmitField, FloatField, FileField, MultipleFil
 from wtforms.validators import Length, DataRequired, NumberRange
 from werkzeug.utils import secure_filename
 from data_process import data_process
+from image_process import image_process
 import os
 
 
@@ -36,9 +37,7 @@ class ImageForm(FlaskForm):
     oiv = FloatField('Input OIV time here:  ',
                        default=0.160124)#, validators=[DataRequired(), NumberRange(min=0, max=10)])
     final = FloatField('Input final time here:  ',
-                     default=0.5)#, validators=[DataRequired(), NumberRange(min=0, max=10)])
-    datarate = FloatField('Input data sample rate here:  ',
-                     default=30008)#, validators=[DataRequired(), NumberRange(min=0, max=100000)])
+                     default=0.01)#, validators=[DataRequired(), NumberRange(min=0, max=10)])
     camerarate = FloatField('Input camera sample rate here:  ',
                           default=1000)#, validators=[DataRequired(), NumberRange(min=0, max=10000)])
     en1317 = BooleanField('EN 1317 test')
@@ -157,10 +156,10 @@ def image_generator():
 
 
         # delete all existing files in the upload folder to keep it clean
-        path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
-        for ff in os.listdir(path):
-            fff = os.path.join(path, ff)
-            os.remove(fff)
+        # path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
+        # for ff in os.listdir(path):
+        #     fff = os.path.join(path, ff)
+        #     os.remove(fff)
 
         # save the new files in the upload folder
         fx.save(filepathx)
@@ -190,7 +189,6 @@ def image_generator():
         session['filepathrpy'] = filepathrpy
         session['oiv'] = form.oiv.data
         session['final'] = form.final.data
-        session['datarate'] = form.datarate.data
         session['camerarate'] = form.camerarate.data
         session['en1317'] = form.en1317.data
 
@@ -202,7 +200,13 @@ def image_generator():
 @app.route('/image_response', methods=['GET', 'POST'])
 def image_response():
     if request.method == 'GET':
-
+        results = image_process(session['filepathx'],
+                                session['filepathy'],
+                                session['filepathz'],
+                                session['filepathrpy'],
+                                session['oiv'],
+                                session['final']
+                                )
         return render_template('image_response.html')
 
 
