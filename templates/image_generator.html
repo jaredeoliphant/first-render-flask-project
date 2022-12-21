@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image generator</title>
+</head>
+<body>
+<form method="POST" enctype="multipart/form-data">
+    {{form.hidden_tag()}}
+    {{form.xfile.label}}{{form.xfile()}}
+    <br>
+    {{form.yfile.label}}{{form.yfile()}}
+    <br>
+    {{form.zfile.label}} {{form.zfile()}}
+    <br>
+    {{form.rpyfile.label}} {{form.rpyfile()}}
+    <br>
+    {{form.asifile.label}}{{form.asifile()}}
+    <br>
+    {{form.oiv.label}} {{form.oiv()}}
+    <br>
+    {{form.final.label}}{{form.final()}}
+    <br>
+    {{form.datarate.label}}{{form.datarate()}}
+    <br>
+    {{form.camerarate.label}}{{form.camerarate()}}
+    <br>
+    {{form.en1317.label}}{{form.en1317()}}
+    <br>
+    {{form.submit()}}
+</form>
+
+
+</body>
+</html>

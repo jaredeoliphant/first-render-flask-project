@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image response</title>
+</head>
+<body>
+<ul>
+    {% for key,value in session.items() %}
+    {% if key != 'csrf_token' %}
+    <li>{{key}} : {{value}}</li>
+    {% endif %}
+    {% endfor %}
+</ul>
+
+</body>
+</html>
