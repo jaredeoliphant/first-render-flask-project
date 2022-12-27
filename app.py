@@ -2,7 +2,7 @@ import io
 
 from flask import Flask, render_template, request, Response, session, redirect, flash, url_for
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, FloatField, FileField, MultipleFileField, BooleanField, DecimalRangeField
+from wtforms import StringField, SubmitField, FloatField, FileField, MultipleFileField, BooleanField
 from wtforms.validators import Length, DataRequired, NumberRange
 # from wtforms.fields.html5 import DecimalRangeField
 from werkzeug.utils import secure_filename
@@ -56,7 +56,6 @@ class ImageForm(FlaskForm):
     camerarate = FloatField('Input camera sample rate here:  ',
                           default=1000)#, validators=[DataRequired(), NumberRange(min=0, max=10000)])
     en1317 = BooleanField('EN 1317 test')
-    testing = DecimalRangeField('test')
     submit = SubmitField('Submit')
 
 
