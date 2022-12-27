@@ -61,7 +61,7 @@ def image_process(x, y, z, rpy, oiv, final, asi=None, camerarate=1000):
     Yawdata = dfRPY['Yaw Angle'].to_numpy()
 
     # plotting
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex=True, figsize=(30, 8), dpi=80)
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex=True, figsize=(30, 8), dpi=64) #gives 512*1920 images
 
     ax1.plot([oiv, oiv], [min(Xaccel_Avg) - 4, max(Xaccel_Avg) + 4], 'r--', lw=1, label='Time of OIV')  # plot OIV
     ax1.plot(timedata, Xaccel_Avg, 'b:', lw=.6)  # plot all the X data with a light dotted line

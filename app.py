@@ -1,11 +1,15 @@
+import io
+
 from flask import Flask, render_template, request, Response, session, redirect, flash, url_for
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, FloatField, FileField, MultipleFileField, BooleanField
+from wtforms import StringField, SubmitField, FloatField, FileField, MultipleFileField, BooleanField, DecimalRangeField
 from wtforms.validators import Length, DataRequired, NumberRange
+# from wtforms.fields.html5 import DecimalRangeField
 from werkzeug.utils import secure_filename
 from data_process import data_process
 from image_process import image_process
 import os
+import shutil
 
 
 app = Flask(__name__)
@@ -14,6 +18,17 @@ app.config['SECRET_KEY'] = 'secretkey'
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'files')
 if not os.path.exists(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])):
     os.makedirs(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER']))
+
+
+def make_archive(source, destination):
+    base = os.path.basename(destination)
+    name = base.split('.')[0]
+    formt = base.split('.')[1]
+    archive_from = os.path.dirname(source)
+    archive_to = os.path.basename(source.strip(os.sep))
+    print(source, destination, archive_from, archive_to)
+    shutil.make_archive(name, formt, archive_from, archive_to)
+    shutil.move('%s.%s' % (name, formt), destination)
 
 
 class DataForm(FlaskForm):
@@ -41,6 +56,7 @@ class ImageForm(FlaskForm):
     camerarate = FloatField('Input camera sample rate here:  ',
                           default=1000)#, validators=[DataRequired(), NumberRange(min=0, max=10000)])
     en1317 = BooleanField('EN 1317 test')
+    testing = DecimalRangeField('test')
     submit = SubmitField('Submit')
 
 
@@ -207,8 +223,25 @@ def image_response():
                                 session['oiv'],
                                 session['final']
                                 )
+        source = os.path.join(os.path.dirname(__file__), 'static', 'files', 'generated_images')
+        destination = os.path.join(os.path.dirname(__file__), 'static', 'generated_images.zip')
+        make_archive(source, destination)
         return render_template('image_response.html')
 
+
+@app.route("/getZIP")
+def getZIP():
+    fullfilepath = os.path.join(os.path.dirname(__file__), 'static', 'generated_images.zip')
+    print(fullfilepath)
+    with open(fullfilepath, 'rb') as fz:
+        zipped = fz.read()
+
+    return Response(
+        zipped,
+        mimetype="application/zip",
+        headers={"Content-disposition":
+                     f"attachment; filename=generated_images.zip"}
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
