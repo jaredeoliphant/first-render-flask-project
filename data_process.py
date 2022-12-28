@@ -74,7 +74,8 @@ def data_process(filename, starttime, endtime):
     time_arr = data['Time'].iloc[0:endd].to_numpy()
     speed_arr = data['Chan 0:SPEED SENSOR'].iloc[0:endd].to_numpy()
     factor = 15
-    resampled_time, resampled_arr = resample_signal(time_arr, speed_arr, factor=factor)
+#     resampled_time, resampled_arr = resample_signal(time_arr, speed_arr, factor=factor)
+    resampled_time, resampled_arr = resample_numpy(time_arr, speed_arr, factor=factor)
     
     peaks, therest = find_peaks(-abs(resampled_arr+100),prominence=35)
     speed_leading = factor*30008*3600/1000/(peaks[2]-peaks[0])
@@ -83,7 +84,7 @@ def data_process(filename, starttime, endtime):
 
     # plot raw speed sensor data for user to confirm nothing is fishy
     
-    xlim_param = resampled_time[peaks[0]] - 0.03275 + .03+.0017
+    xlim_param = resampled_time[peaks[0]] - 0.00105
     
     # plot raw speed sensor data for user to confirm nothing is fishy
     fig = Figure(figsize=(16,6))
@@ -150,6 +151,12 @@ def data_process(filename, starttime, endtime):
             'pitchbias': pitchbias,
             'yawbias': yawbias
             }
+
+
+def resample_numpy(t_arr, x_arr, factor=2):
+    newstep = (t_arr[1] - t_arr[0])/factor
+    new_time = np.arange(t_arr[0],t_arr[-1]+newstep,newstep)
+    return new_time, np.interp(new_time,t_arr,x_arr)
 
 
 def resample_signal(t_arr, x_arr, factor=2):
