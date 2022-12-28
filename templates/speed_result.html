@@ -14,6 +14,11 @@
   </div>
   </center>
     <h1>Results:</h1>
+  <center>
+    <h4>
+      <br><a href="/">Back</a>
+    </h4>
+  </center>
     <center>Test ID: {{ testID }} 
     <br>   
     speed (leading edge):  {{ speed_kmh }} km/h 
@@ -22,11 +27,13 @@
     <br> 
     roll, pitch, yaw samping bias':  {{ rollbias }}, {{ pitchbias }}, {{ yawbias }} 
     <br> 
-    taken from the interval:  ({{ starttime }}, {{ endtime }}) 
-    <br> 
+    taken from the interval:  ({{ starttime }}, {{ endtime }})
+      <br>
     <img src="data:image/png;base64,{{ imgdata }}"/>
     <br>
+      {% if not session['errorflag'] %}
     <a href="/getCSV">Download</a> .csv file with sampling bias removed
+      {% endif %}
     </center>
     <p></p>
     <p></p>

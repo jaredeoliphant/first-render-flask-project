@@ -1,13 +1,12 @@
 import io
-
 from flask import Flask, render_template, request, Response, session, redirect, flash, url_for
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, FloatField, FileField, MultipleFileField, BooleanField
 from wtforms.validators import Length, DataRequired, NumberRange
-# from wtforms.fields.html5 import DecimalRangeField
+from flask_wtf.file import FileAllowed
 from werkzeug.utils import secure_filename
 from data_process import data_process
-from image_process import image_process
+from image_process import image_process, image_process_asi
 import os
 import shutil
 
@@ -26,14 +25,13 @@ def make_archive(source, destination):
     formt = base.split('.')[1]
     archive_from = os.path.dirname(source)
     archive_to = os.path.basename(source.strip(os.sep))
-    print(source, destination, archive_from, archive_to)
     shutil.make_archive(name, formt, archive_from, archive_to)
     shutil.move('%s.%s' % (name, formt), destination)
 
 
 class DataForm(FlaskForm):
 
-    file = FileField('CSV File  ', validators=[DataRequired()])
+    file = FileField('CSV File  ', validators=[DataRequired(), FileAllowed(['csv'], '.CSV Files only')])
     start = FloatField('Start time for sampling bias calculation:  ',
                        default=7.0, validators=[DataRequired(), NumberRange(min=0, max=10)])
     end = FloatField('End time for sampling bias calculation:  ',
@@ -43,18 +41,18 @@ class DataForm(FlaskForm):
 
 class ImageForm(FlaskForm):
 
-    xfile = FileField('X accel file  ')#, validators=[DataRequired()])
-    yfile = FileField('Y accel file  ')#, validators=[DataRequired()])
-    zfile = FileField('Z accel file  ')#, validators=[DataRequired()])
-    rpyfile = FileField('RPY angles file  ')#, validators=[DataRequired()])
+    xfile = FileField('X accel file  ', validators=[DataRequired(), FileAllowed(['csv'], '.CSV Files only')])
+    yfile = FileField('Y accel file  ', validators=[DataRequired(), FileAllowed(['csv'], '.CSV Files only')])
+    zfile = FileField('Z accel file  ', validators=[DataRequired(), FileAllowed(['csv'], '.CSV Files only')])
+    rpyfile = FileField('RPY angles file  ', validators=[DataRequired(), FileAllowed(['csv'], '.CSV Files only')])
     asifile = FileField('ASI file  ')
 
     oiv = FloatField('Input OIV time here:  ',
                        default=0.160124)#, validators=[DataRequired(), NumberRange(min=0, max=10)])
     final = FloatField('Input final time here:  ',
                      default=0.01)#, validators=[DataRequired(), NumberRange(min=0, max=10)])
-    camerarate = FloatField('Input camera sample rate here:  ',
-                          default=1000)#, validators=[DataRequired(), NumberRange(min=0, max=10000)])
+    camerarate = FloatField('Input camera frame rate here:  ',
+                          default=1000.0)#, validators=[DataRequired(), NumberRange(min=0, max=10000)])
     en1317 = BooleanField('EN 1317 test')
     submit = SubmitField('Submit')
 
@@ -70,11 +68,12 @@ def index():
         filepath = os.path.join(
             os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], filename)
 
-        # delete all existing files in the upload folder to keep it clean
+        # delete all existing .csv files in the upload folder to keep it clean
         path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
         for ff in os.listdir(path):
             fff = os.path.join(path, ff)
-            os.remove(fff)
+            if fff.endswith('.csv'):
+                os.remove(fff)
 
         # save the new file in the upload folder
         f.save(filepath)
@@ -97,7 +96,10 @@ def speed_result():
         end = session['end']
 
         processed_values = data_process(filepath, start, end)
+        # delete uploaded file
         os.remove(filepath)
+
+        session['errorflag'] = processed_values['errorflag']
 
         session['outputfilename'] = processed_values['outputfilename']
 
@@ -122,7 +124,10 @@ def getCSV():
     fullfilepath = f'{session["outputfilename"]}.csv'
     with open(fullfilepath) as fp:
         csv = fp.read()
-    
+
+    # delete csv file to keep it clean
+    os.remove(fullfilepath)
+
     return Response(
         csv,
         mimetype="text/csv",
@@ -169,12 +174,19 @@ def image_generator():
         filepathrpy = os.path.join(
             os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], filenamerpy)
 
+        # delete all existing .csv files in the upload folder to keep it clean
+        path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
+        for ff in os.listdir(path):
+            fff = os.path.join(path, ff)
+            if fff.endswith('.csv'):
+                os.remove(fff)
 
-        # delete all existing files in the upload folder to keep it clean
-        # path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
-        # for ff in os.listdir(path):
-        #     fff = os.path.join(path, ff)
-        #     os.remove(fff)
+        # delete all existing .png files in the upload/generated_images folder to keep it clean
+        path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], 'generated_images')
+        for ff in os.listdir(path):
+            fff = os.path.join(path, ff)
+            if fff.endswith('.png'):
+                os.remove(fff)
 
         # save the new files in the upload folder
         fx.save(filepathx)
@@ -182,18 +194,6 @@ def image_generator():
         fz.save(filepathz)
         frpy.save(filepathrpy)
 
-        # asi file is optional. only save it if it exists
-        fasi = form.asifile.data
-        if fasi:
-            filenameasi = secure_filename(fasi.filename)
-            filepathasi = os.path.join(
-                os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], filenameasi)
-            fasi.save(filepathasi)
-            session['filenameasi'] = filenameasi.split('.csv')[0]
-            session['filepathasi'] = filepathasi
-
-
-        print('validated')
         session['filenamex'] = filenamex.split('.csv')[0]
         session['filepathx'] = filepathx
         session['filenamey'] = filenamey.split('.csv')[0]
@@ -206,6 +206,18 @@ def image_generator():
         session['final'] = form.final.data
         session['camerarate'] = form.camerarate.data
         session['en1317'] = form.en1317.data
+        session['filepathasi'] = None
+        session['filenameasi'] = None
+
+        # asi file is optional. only save it if it exists
+        fasi = form.asifile.data
+        if fasi:
+            filenameasi = secure_filename(fasi.filename)
+            filepathasi = os.path.join(
+                os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], filenameasi)
+            fasi.save(filepathasi)
+            session['filenameasi'] = filenameasi.split('.csv')[0]
+            session['filepathasi'] = filepathasi
 
         return redirect(url_for('image_response'))
 
@@ -215,25 +227,48 @@ def image_generator():
 @app.route('/image_response', methods=['GET', 'POST'])
 def image_response():
     if request.method == 'GET':
-        results = image_process(session['filepathx'],
-                                session['filepathy'],
-                                session['filepathz'],
-                                session['filepathrpy'],
-                                session['oiv'],
-                                session['final']
-                                )
+        if session['en1317'] and session['filepathasi']:
+            print('running en1317 test images')
+            succeeded = image_process_asi(session['filepathx'], session['filepathy'], session['filepathz'],
+                                          session['filepathrpy'], session['filepathasi'], session['oiv'],
+                                          session['final'], session['camerarate'])
+        else:
+            print('running mash test images')
+            succeeded = image_process(session['filepathx'], session['filepathy'], session['filepathz'],
+                                      session['filepathrpy'], session['oiv'], session['final'], session['camerarate'])
+
+        if not succeeded:
+            return 'image processing failed'
+
         source = os.path.join(os.path.dirname(__file__), 'static', 'files', 'generated_images')
         destination = os.path.join(os.path.dirname(__file__), 'static', 'generated_images.zip')
         make_archive(source, destination)
+
+        # delete all existing .png files in the upload/generated_images folder to keep it clean
+        path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], 'generated_images')
+        for ff in os.listdir(path):
+            fff = os.path.join(path, ff)
+            if fff.endswith('.png'):
+                os.remove(fff)
+
+        # delete all existing .csv files in the upload folder to keep it clean
+        path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
+        for ff in os.listdir(path):
+            fff = os.path.join(path, ff)
+            if fff.endswith('.csv'):
+                os.remove(fff)
+
         return render_template('image_response.html')
 
 
 @app.route("/getZIP")
 def getZIP():
     fullfilepath = os.path.join(os.path.dirname(__file__), 'static', 'generated_images.zip')
-    print(fullfilepath)
     with open(fullfilepath, 'rb') as fz:
         zipped = fz.read()
+
+    # delete zip file to keep it clean
+    os.remove(fullfilepath)
 
     return Response(
         zipped,
@@ -243,5 +278,5 @@ def getZIP():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
     
