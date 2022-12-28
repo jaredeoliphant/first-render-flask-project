@@ -129,7 +129,7 @@ def image_process(x, y, z, rpy, oiv, final, camerarate):
 
         plt.draw()  # required for the set_xdata command to activate
         imgfilename = os.path.join(my_directory, f'{i+1}.png')
-        print("... saving {imgfilename}")  # keep the user updated where were are at
+        print(f"... saving {imgfilename}")  # keep the user updated where were are at
         plt.savefig(imgfilename, transparent=False)  # save the figure as a png file.
 
     dt = timedata[1] - timedata[0]
@@ -171,7 +171,7 @@ def image_process(x, y, z, rpy, oiv, final, camerarate):
         plt.draw()  # required for the set_xdata command to activate
 
         imgfilename = os.path.join(my_directory, f'{ind+10}.png')
-        print("... saving {imgfilename}")  # keep the user updated where were are at
+        print(f"... saving {imgfilename}")  # keep the user updated where were are at
         plt.savefig(imgfilename, transparent=False)  # # save the figure as a png file
 
     return True
@@ -284,7 +284,7 @@ def image_process_asi(x, y, z, rpy, asi, oiv, final, camerarate):
 
         plt.draw()  # required for the set_xdata command to activate
         imgfilename = os.path.join(my_directory, f'{i + 1}.png')
-        print("... saving {imgfilename}")  # keep the user updated where were are at
+        print(f"... saving {imgfilename}")  # keep the user updated where were are at
         plt.savefig(imgfilename, transparent=False)  # save the figure as a png file.
 
     dt = timedata[1] - timedata[0]
@@ -329,7 +329,7 @@ def image_process_asi(x, y, z, rpy, asi, oiv, final, camerarate):
         plt.draw()  # required for the set_xdata command to activate
 
         imgfilename = os.path.join(my_directory, f'{ind + 10}.png')
-        print("... saving {imgfilename}")  # keep the user updated where were are at
+        print(f"... saving {imgfilename}")  # keep the user updated where were are at
         plt.savefig(imgfilename, transparent=False)  # # save the figure as a png file
 
     return True
