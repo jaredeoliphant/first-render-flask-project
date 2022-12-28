@@ -18,6 +18,9 @@ app.config['UPLOAD_FOLDER'] = os.path.join('static', 'files')
 if not os.path.exists(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])):
     os.makedirs(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER']))
 
+if not os.path.exists(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], 'generated_images')):
+    os.makedirs(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], 'generated_images'))
+
 
 def make_archive(source, destination):
     base = os.path.basename(destination)
